@@ -38,34 +38,34 @@ tSymptomOnset = df['onset'].values.astype("int")
 obs = tSymptomOnset - tStartExposure
 
 with pm.Model() as mod_l:
-    u = pm.Gamma("u", ps_l['mean'][0], ps_l['sd'][0])
+    u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
-    a = pm.Gamma("a", mu=ps_l['mean'][1], sigma=ps_l['sd'][1])
-    b = pm.Gamma("b", mu=ps_l['mean'][2], sigma=ps_l['sd'][2])
+    a = pm.Gamma("a", mu=1, sigma=1)
+    b = pm.Gamma("b", mu=1, sigma=1)
     y = pm.LogNormal("y", mu=a+e, sigma=b, observed=obs)
-    idata_l = pm.sample(1000, idata_kwargs={"log_likelihood": True}, target_accept=0.99, random_seed=27)
+    idata_l = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
 
 with pm.Model() as mod_g:
-    u = pm.Gamma("u", ps_g['mean'][0], ps_g['sd'][0])
+    u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
-    a = pm.Gamma("a", mu=ps_g['mean'][1], sigma=ps_g['sd'][1])
-    b = pm.Gamma("b", mu=ps_g['mean'][2], sigma=ps_g['sd'][2])
+    a = pm.Gamma("a", mu=1, sigma=1)
+    b = pm.Gamma("b", mu=1, sigma=1)
     y = pm.Gamma("y", mu=a+e, sigma=b, observed=obs)
     idata_g = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
 
 with pm.Model() as mod_w:
-    u = pm.Gamma("u", ps_w['mean'][0], ps_w['sd'][0])
+    u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
-    a = pm.Gamma("a", mu=ps_w['mean'][1], sigma=ps_w['sd'][1])
-    b = pm.Gamma("b", mu=ps_w['mean'][2], sigma=ps_w['sd'][2])
+    a = pm.Gamma("a", mu=1, sigma=1)
+    b = pm.Gamma("b", mu=1, sigma=1)
     y = pm.Weibull("y", alpha=a+e, beta=b, observed=obs)
-    idata_w = pm.sample(1000, idata_kwargs={"log_likelihood": True}, target_accept=0.99, random_seed=27)
+    idata_w = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
     
 with pm.Model() as mod_wa:
-    u = pm.Gamma("u", ps_n['mean'][0], ps_n['sd'][0])
+    u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
-    a = pm.Gamma("a", mu=ps_n['mean'][1], sigma=ps_n['sd'][1])
-    b = pm.Gamma("b", mu=ps_n['mean'][2], sigma=ps_n['sd'][2])
+    a = pm.Gamma("a", mu=1, sigma=1)
+    b = pm.Gamma("b", mu=1, sigma=1)
     y = pm.NegativeBinomial("y", mu=a+e, alpha=b, observed=obs)
     idata_n = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
 
@@ -76,15 +76,15 @@ loo = az.compare(mods, ic='loo')
 
 az.plot_compare(loo, insample_dev=True, plot_kwargs={'color_insample_dev':'crimson', 'color_dse':'steelblue'})
 plt.xlabel("ELPD LOO")
-plt.title("LOO Model Comparison (Italy)", size=12)
+plt.title("LOO Model Comparison (Italy: no prior update)", size=12)
 plt.grid(alpha=0.3)
 plt.legend(prop={'size': 12})
 plt.tight_layout()
-plt.savefig('./plots/IT_model_comp_loo.png', dpi=600)
+plt.savefig('./plots/IT_base_model_comp_loo.png', dpi=600)
 plt.show()
 plt.close()
 loo_df = pd.DataFrame(loo)
-loo_df.to_csv("./summaries/IT_model_comp_loo.csv")
+loo_df.to_csv("./summaries/IT_base_model_comp_loo.csv")
 
 
 ###compare Waic
@@ -93,15 +93,15 @@ waic = az.compare(mods, ic='waic')
 
 az.plot_compare(loo, insample_dev=True, plot_kwargs={'color_insample_dev':'crimson', 'color_dse':'steelblue'})
 plt.xlabel("Log")
-plt.title("Waic Model Comparison (Italy)", size=12)
+plt.title("Waic Model Comparison (Italy: no prior update)", size=12)
 plt.grid(alpha=0.3)
 plt.legend(prop={'size': 12})
 plt.tight_layout()
-plt.savefig('./plots/IT_model_comp_waic.png', dpi=600)
+plt.savefig('./plots/IT_base_model_comp_waic.png', dpi=600)
 plt.show()
 plt.close()
 loo_df = pd.DataFrame(loo)
-loo_df.to_csv("./summaries/IT_model_comp_waic.csv")
+loo_df.to_csv("./summaries/IT_base_model_comp_waic.csv")
 
 
 pos_l_a = az.extract(idata_l.posterior)['a'].values
@@ -131,7 +131,7 @@ mod_hus = [az.hdi(means_l.T, hdi_prob=0.95)[1], az.hdi(means_g.T, hdi_prob=0.95)
            az.hdi(means_w.T, hdi_prob=0.95)[1], az.hdi(means_n.T, hdi_prob=0.95)[1]]
 ne_means = pd.DataFrame({"Model":mod_names, "Mean":mod_means, "SD":mod_stds,
                          "HDI 2.5%":mod_hls, "HDI 97.5%":mod_hus})
-ne_means.to_csv("./summaries/IT_means.csv")
+ne_means.to_csv("./summaries/IT_base_means.csv")
 
 ne_means = ne_means.round(2)
 
@@ -141,9 +141,9 @@ ax.axis('tight')
 table = ax.table(cellText=ne_means.values, colLabels=ne_means.columns, loc='center')
 table.set_fontsize(25)
 table.scale(4.5, 4.5) 
-plt.suptitle("Table 3. Estimated Mean Incubation Period (Italy)", size=30, y=1)
+plt.suptitle("Table 2. Estimated Mean Incubation Period (Italy: no prior update)", size=30, y=1)
 plt.tight_layout()
-plt.savefig("./plots/IT_table3.png", dpi=600, bbox_inches="tight")
+plt.savefig("./plots/IT_base_table2.png", dpi=600, bbox_inches="tight")
 plt.show()
 
 
@@ -234,9 +234,9 @@ ax[1,1].spines[['right', 'top']].set_visible(False)
 ax[1,1].legend(loc="lower right")
 ax[1,1].grid(alpha=0.2)
 ax[1,1].set_title("D. Negative Binomial")
-plt.suptitle("Models CDFs (Italy)")
+plt.suptitle("Models CDFs (Italy: no prior update)")
 plt.tight_layout()
-plt.savefig("./plots/IT_cdfs_plots.png", dpi=600)
+plt.savefig("./plots/IT_base_cdfs_plots.png", dpi=600)
 plt.show()
 plt.close()
 
@@ -252,5 +252,5 @@ n_summ['model'] = np.repeat("NegativeBinomial", len(w_summ))
 
 posteriors = pd.concat([l_summ, g_summ, w_summ, n_summ])
 
-posteriors.to_csv("./summaries/IT_posteriors.csv")
+posteriors.to_csv("./summaries/IT_base_posteriors.csv")
 

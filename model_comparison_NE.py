@@ -16,7 +16,7 @@ plt.rcParams['font.serif'] = "Cambria Math"
 
 np.random.seed(27)
 
-df = pd.read_csv("Netherlands_Mpox.csv")
+df = pd.read_csv("./data/Netherlands_Mpox.csv")
 
 N = len(df)
 tStartExposure = df['Start date of exposure'].values.astype("int")
@@ -74,11 +74,11 @@ plt.title("LOO Model Comparison (Netherlands)", size=12)
 plt.grid(alpha=0.3)
 plt.legend(prop={'size': 12})
 plt.tight_layout()
-plt.savefig('NE_model_comp_loo.png', dpi=600)
+plt.savefig('./plots/NE_model_comp_loo.png', dpi=600)
 plt.show()
 plt.close()
 loo_df = pd.DataFrame(loo)
-loo_df.to_csv("NE_model_comp_loo.csv")
+loo_df.to_csv("./summaries/NE_model_comp_loo.csv")
 
 
 ###compare Waic
@@ -91,11 +91,11 @@ plt.title("Waic Model Comparison (Netherlands)", size=12)
 plt.grid(alpha=0.3)
 plt.legend(prop={'size': 12})
 plt.tight_layout()
-plt.savefig('NE_model_comp_waic.png', dpi=600)
+plt.savefig('./plots/NE_model_comp_waic.png', dpi=600)
 plt.show()
 plt.close()
 loo_df = pd.DataFrame(loo)
-loo_df.to_csv("NE_model_comp_waic.csv")
+loo_df.to_csv("./summaries/NE_model_comp_waic.csv")
 
 
 pos_l_a = az.extract(idata_l.posterior)['a'].values
@@ -125,7 +125,7 @@ mod_hus = [az.hdi(means_l.T, hdi_prob=0.95)[1], az.hdi(means_g.T, hdi_prob=0.95)
            az.hdi(means_w.T, hdi_prob=0.95)[1], az.hdi(means_n.T, hdi_prob=0.95)[1]]
 ne_means = pd.DataFrame({"Model":mod_names, "Mean":mod_means, "SD":mod_stds,
                          "HDI 2.5%":mod_hls, "HDI 97.5%":mod_hus})
-ne_means.to_csv("NE_means.csv")
+ne_means.to_csv("./summaries/NE_means.csv")
 
 ne_means = ne_means.round(2)
 
@@ -137,7 +137,7 @@ table.set_fontsize(25)
 table.scale(4.5, 4.5) 
 plt.suptitle("Table 1. Estimated Mean Incubation Period (Netherlands)", size=30, y=1)
 plt.tight_layout()
-plt.savefig("NE_table1.png", dpi=600, bbox_inches="tight")
+plt.savefig("./plots/NE_table1.png", dpi=600, bbox_inches="tight")
 plt.show()
 
 
@@ -231,7 +231,7 @@ ax[1,1].grid(alpha=0.2)
 ax[1,1].set_title("D. Negative Binomial")
 plt.suptitle("Models CDFs (Netherlands)")
 plt.tight_layout()
-plt.savefig("NE_cdfs_plots.png", dpi=600)
+plt.savefig("./plots/NE_cdfs_plots.png", dpi=600)
 plt.show()
 plt.close()
 
@@ -247,5 +247,5 @@ n_summ['model'] = np.repeat("NegativeBinomial", len(n_summ))
 
 posteriors = pd.concat([l_summ, g_summ, w_summ, n_summ])
 
-posteriors.to_csv("NE_posteriors.csv")
+posteriors.to_csv("./summaries/NE_posteriors.csv")
 
