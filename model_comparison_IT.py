@@ -4,6 +4,7 @@ import arviz as az
 import numpy as np
 import scipy as sp
 import pandas as pd
+import seaborn as sns
 import pytensor.tensor as pt
 import matplotlib.pyplot as plt
 from scipy.special import gamma
@@ -151,18 +152,21 @@ plt.savefig("./plots/IT_table3.png", dpi=600, bbox_inches="tight")
 plt.show()
 
 
+
 ### plot
 erf = sp.special.erf
 ginc = sp.special.gammainc
 Gamma = sp.special.gamma
 Phi = sp.stats.norm.cdf
+binc = sp.special.betainc
 
 def ln_cdf(x, m, s):
    return 0.5*(1 + erf( ((np.log(x)-m))/(s*np.sqrt(2))) )    
-
+   
 def gam_cdf(x, m, s):
     a = (m**2)/(s**2)
-    return sp.stats.gamma.cdf(x,a,scale=s)
+    b = m/s**2
+    return sp.stats.gamma.cdf(x,a,scale=s.mean()/2)
     
 def wei_cdf(x, a, b):
     return 1 - np.exp(-(x/b)**a) 
@@ -171,7 +175,7 @@ def nb_cdf(x, m, a):
     p = a/(m+a)
     n = a
     return sp.stats.nbinom.cdf(x, n, p)
-
+    
 # def wal_cdf(x, m, l):
 #     p1 = Phi(np.sqrt(l/x)*((x/m) - 1))
 #     p2 = np.exp(2*l/m)*Phi(-np.sqrt(l/x)*((x/m) + 1))
@@ -197,12 +201,17 @@ n_cdf_5, n_cdf_95 = az.hdi(n_cdf.T, hdi_prob=0.95).T
 
 inc_day = ((tSymptomOnset-tEndExposure)+(tSymptomOnset-tStartExposure))/2
 
+l = np.round(((30-18)/2), 0)
+r = 30-18 - l
+
+#inc_day = list(np.repeat(min(inc_day), l)) + list(inc_day) + list(np.repeat(max(inc_day), r))
+
 num_bins = x.shape[0]
-counts, bin_edges = np.histogram(inc_day-inc_day.min(), bins=num_bins, density=True)
+counts, bin_edges = np.histogram(np.sort(inc_day), bins=num_bins, density=True)
 e_cdf = np.cumsum(counts/counts.sum())
 
 fig, ax = plt.subplots(2,2, figsize=(10,10))
-ax[0,0].step(x.mean(axis=1), e_cdf, color='k', linestyle=":", label="Empirical CDF")
+sns.ecdfplot(inc_day, ax=ax[0,0], color='k', linestyle=":", label="Empirical CDF")
 ax[0,0].plot(x.mean(axis=1), l_cdf_m, color="slateblue", label="LogNormal CDF")
 ax[0,0].fill_between(x.mean(axis=1), l_cdf_5, l_cdf_95, color="slateblue", alpha=0.2, label="95% HDI")
 ax[0,0].set_ylabel("Proporton")
@@ -211,7 +220,7 @@ ax[0,0].spines[['right', 'top']].set_visible(False)
 ax[0,0].legend(loc="lower right")
 ax[0,0].grid(alpha=0.2)
 ax[0,0].set_title("A. LogNormal")
-ax[0,1].step(x.mean(axis=1), e_cdf, color='k', linestyle=":", label="Empirical CDF")
+sns.ecdfplot(inc_day, ax=ax[0,1], color='k', linestyle=":", label="Empirical CDF")
 ax[0,1].plot(x.mean(axis=1), g_cdf_m, color="crimson", label="Gamma CDF")
 ax[0,1].fill_between(x.mean(axis=1), g_cdf_5, g_cdf_95, color="crimson", alpha=0.2, label="95% HDI")
 ax[0,1].set_ylabel("Proporton")
@@ -220,7 +229,7 @@ ax[0,1].spines[['right', 'top']].set_visible(False)
 ax[0,1].legend(loc="lower right")
 ax[0,1].grid(alpha=0.2)
 ax[0,1].set_title("B. Gamma")
-ax[1,0].step(x.mean(axis=1), e_cdf, color='k', linestyle=":", label="Empirical CDF")
+sns.ecdfplot(inc_day, ax=ax[1,0], color='k', linestyle=":", label="Empirical CDF")
 ax[1,0].plot(x.mean(axis=1), w_cdf_m, color="orange", label="Weibull CDF")
 ax[1,0].fill_between(x.mean(axis=1), w_cdf_5, w_cdf_95, color="orange", alpha=0.2, label="95% HDI")
 ax[1,0].set_ylabel("Proporton")
@@ -229,8 +238,8 @@ ax[1,0].spines[['right', 'top']].set_visible(False)
 ax[1,0].legend(loc="lower right")
 ax[1,0].grid(alpha=0.2)
 ax[1,0].set_title("C. Weibull")
-ax[1,1].step(x.mean(axis=1), e_cdf, color='k', linestyle=":", label="Empirical CDF")
-ax[1,1].plot(x.mean(axis=1), n_cdf_m, color="forestgreen", label="Negative Binomial CDF")
+sns.ecdfplot(inc_day, ax=ax[1,1], color='k', linestyle=":", label="Empirical CDF")
+ax[1,1].plot(x.mean(axis=1), n_cdf_m, color="forestgreen", label="NegativeBinomial CDF")
 ax[1,1].fill_between(x.mean(axis=1), n_cdf_5, n_cdf_95, color="forestgreen", alpha=0.2, label="95% HDI")
 ax[1,1].set_ylabel("Proporton")
 ax[1,1].set_xlabel("Incubation period (days)")
@@ -243,6 +252,7 @@ plt.tight_layout()
 plt.savefig("./plots/IT_cdfs_plots.png", dpi=600)
 plt.show()
 plt.close()
+
 
 l_summ = az.summary(idata_l, hdi_prob=0.95)
 g_summ = az.summary(idata_g, hdi_prob=0.95)
