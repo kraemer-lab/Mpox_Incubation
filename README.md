@@ -48,7 +48,7 @@
 	<img src="plots/IT_base_model_comp_loo.png" width="800" height="500" />
 </p>
 
-<p> After this, we used the posterior mean and standard deviation from each Gamma prior for parameters <i>a</i> and <i>b</i> from each model and used it to parameterise the respective model's Gamma priors for the Italy models (i.e. Beta priors were replaced by Gamma priors as well). Results showed slightly improved accuracy and precision. As expected from small data models, updating priors changes the predictive capacity of models, though it is relevant to emphasise that models show high ELPD overlap. Note that in this case, the PSIS-LOO comparison indicates that Gamma and NegativeBinomial models have very similar weights of 48% and 52% respectively (see summaries).  </p>
+<p> After this, we used the posterior mean and standard deviation from each Gamma prior for parameters <i>a</i> and <i>b</i> from each model and used it to parameterise the respective model's Gamma priors for the Italy models (i.e. Beta priors were not replaced). Results showed slightly improved accuracy and precision. As expected from small data models, updating priors changes the predictive capacity of models, though it is relevant to emphasise that models show high ELPD overlap. Note that in this case, the PSIS-LOO comparison indicates that Gamma and NegativeBinomial models have very similar weights of 48% and 52% respectively (see summaries).  </p>
 
 <p align="center">
 	<img src="plots/IT_table3.png" width="800" height="200" />

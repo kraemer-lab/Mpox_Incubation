@@ -249,3 +249,40 @@ posteriors = pd.concat([l_summ, g_summ, w_summ, n_summ])
 
 posteriors.to_csv("./summaries/NE_posteriors.csv")
 
+
+### save summary plots
+fig, ax = plt.subplots(2,2, figsize=(12,12))
+az.plot_energy(idata_l, ax=ax[0,0])
+ax[0,0].set_title("LogNormal")
+az.plot_energy(idata_g, ax=ax[0,1])
+ax[0,1].set_title("Gamma")
+az.plot_energy(idata_w, ax=ax[1,0])
+ax[1,0].set_title("Weibull")
+az.plot_energy(idata_n, ax=ax[1,1])
+ax[1,1].set_title("NegativeBinomial")
+plt.suptitle("Netherlands")
+plt.tight_layout()
+plt.savefig("./summary_plots/NE_energy_plots.png", dpi=300)
+plt.close()
+
+
+fig, ax = plt.subplots(2,2, figsize=(12,12))
+az.plot_trace(idata_l, kind="rank_vlines")
+plt.suptitle("LogNormal (Netherlands)")
+plt.tight_layout()
+plt.savefig("./summary_plots/NE_lognormal_rankplot.png", dpi=300)
+
+az.plot_trace(idata_g, kind="rank_vlines")
+plt.suptitle("Gamma (Netherlands)")
+plt.tight_layout()
+plt.savefig("./summary_plots/NE_gamma_rankplot.png", dpi=300)
+
+az.plot_trace(idata_w, kind="rank_vlines")
+plt.suptitle("Weibull (Netherlands)")
+plt.tight_layout()
+plt.savefig("./summary_plots/NE_weibull_rankplot.png", dpi=300)
+
+az.plot_trace(idata_l, kind="rank_vlines")
+plt.suptitle("NegativeBinomial (Netherlands)")
+plt.tight_layout()
+plt.savefig("./summary_plots/NE_negativebinom_rankplot.png", dpi=300)

@@ -254,3 +254,40 @@ posteriors = pd.concat([l_summ, g_summ, w_summ, n_summ])
 
 posteriors.to_csv("./summaries/IT_base_posteriors.csv")
 
+
+### save summary plots
+fig, ax = plt.subplots(2,2, figsize=(12,12))
+az.plot_energy(idata_l, ax=ax[0,0])
+ax[0,0].set_title("LogNormal")
+az.plot_energy(idata_g, ax=ax[0,1])
+ax[0,1].set_title("Gamma")
+az.plot_energy(idata_w, ax=ax[1,0])
+ax[1,0].set_title("Weibull")
+az.plot_energy(idata_n, ax=ax[1,1])
+ax[1,1].set_title("NegativeBinomial")
+plt.suptitle("Italy (no prior update)")
+plt.tight_layout()
+plt.savefig("./summary_plots/IT_base_energy_plots.png", dpi=300)
+plt.close()
+
+
+fig, ax = plt.subplots(2,2, figsize=(12,12))
+az.plot_trace(idata_l, kind="rank_vlines")
+plt.suptitle("LogNormal (Italy: no prior update)")
+plt.tight_layout()
+plt.savefig("./summary_plots/IT_base_lognormal_rankplot.png", dpi=300)
+
+az.plot_trace(idata_g, kind="rank_vlines")
+plt.suptitle("Gamma (Italy: no prior update)")
+plt.tight_layout()
+plt.savefig("./summary_plots/IT_base_gamma_rankplot.png", dpi=300)
+
+az.plot_trace(idata_w, kind="rank_vlines")
+plt.suptitle("Weibull (Italy: no prior update)")
+plt.tight_layout()
+plt.savefig("./summary_plots/IT_base_weibull_rankplot.png", dpi=300)
+
+az.plot_trace(idata_l, kind="rank_vlines")
+plt.suptitle("NegativeBinomial (Italy: no prior update)")
+plt.tight_layout()
+plt.savefig("./summary_plots/IT_base_negativebinom_rankplot.png", dpi=300)
