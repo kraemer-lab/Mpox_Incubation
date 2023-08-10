@@ -1,6 +1,6 @@
-<h1> Monkeypox Incubation Estimation </h1>
+<h1> Mpox Incubation Estimation </h1>
 
-<p>The present repository reproduces and expands the analyses carried on by Miura and colleagues (2022) [see : https://github.com/fmiura/MpxInc_2022/tree/main]. We expand the analyses by providing fully parametrised models obtaining very close results to Miura et al. (2022), we also provide an example of prior updating where we fit models to data from Italy by adjusting priors from Netherlands parameters posterior information </p>
+<p>The present repository reproduces and expands the analyses carried on by Miura and colleagues (2022) [see : https://github.com/fmiura/MpxInc_2022/tree/main]. We expand the analyses by providing fully parametrised models obtaining very close results to Miura et al. (2022). we also provide an example of prior updating where we fit models to data from Italy by adjusting priors based on the Netherlands models posteriors. </p>
 
 
 <h1> Models </h1>
