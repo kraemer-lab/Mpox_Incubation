@@ -30,8 +30,9 @@ tSymptomOnset = df['Symptom onset'].values.astype("int")
 # tE = tStartExposure + uE * (tEndExposure - tStartExposure)
 # obs = tSymptomOnset - tE
 
-obs = tSymptomOnset - tStartExposure
+obs = tSymptomOnset - tStartExposure #time latency from beginning of exposure to symptoms onset
 
+#Lognormal model
 with pm.Model() as mod_l:
     u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
@@ -40,6 +41,7 @@ with pm.Model() as mod_l:
     y = pm.LogNormal("y", mu=a+e, sigma=b, observed=obs)
     idata_l = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
 
+#Gamma model
 with pm.Model() as mod_g:
     u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
@@ -48,6 +50,7 @@ with pm.Model() as mod_g:
     y = pm.Gamma("y", mu=a+e, sigma=b, observed=obs)
     idata_g = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
 
+#Weibull model
 with pm.Model() as mod_w:
     u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
@@ -55,7 +58,8 @@ with pm.Model() as mod_w:
     b = pm.Gamma("b", 1, 1)
     y = pm.Weibull("y", alpha=a+e, beta=b, observed=obs)
     idata_w = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
-    
+
+#Negative binomial model
 with pm.Model() as mod_n:
     u = pm.Beta("u", 1, 1)
     e = u * (tEndExposure - tStartExposure)
@@ -65,7 +69,7 @@ with pm.Model() as mod_n:
     idata_n = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27)
 
 
-###compare loo
+###compare models with PSIS-Loo
 mods = {"LN":idata_l, "Gamma":idata_g, "Weibull":idata_w, "NB":idata_n}
 loo = az.compare(mods, ic='loo')
 
@@ -82,7 +86,7 @@ loo_df = pd.DataFrame(loo)
 loo_df.to_csv("./summaries/NE_model_comp_loo.csv")
 
 
-###compare Waic
+###compare models with WAIC
 mods = {"LN":idata_l, "Gamma":idata_g, "Weibull":idata_w, "NB":idata_n}
 waic = az.compare(mods, ic='waic')
 
@@ -98,6 +102,10 @@ plt.close()
 loo_df = pd.DataFrame(loo)
 loo_df.to_csv("./summaries/NE_model_comp_waic.csv")
 
+
+##### Take models' estimated mean incubation period ####
+# for Gamma and NegativeBinomial distributions this should be
+# the same as their location/central tendecy parameters a.
 
 pos_l_a = az.extract(idata_l.posterior)['a'].values
 pos_l_b = az.extract(idata_l.posterior)['b'].values
@@ -130,6 +138,7 @@ ne_means.to_csv("./summaries/NE_means.csv")
 
 ne_means = ne_means.round(2)
 
+## Save estimates as table
 fig, ax = plt.subplots(1, figsize=(5,5))
 ax.axis('off')
 ax.axis('tight')
@@ -142,34 +151,41 @@ plt.savefig("./plots/NE_table1.png", dpi=600, bbox_inches="tight")
 plt.show()
 
 
-### plot
+### Produce and save cumulative density function (CDF) plots
+# functions for cdf calculation
 erf = sp.special.erf
 ginc = sp.special.gammainc
 Gamma = sp.special.gamma
 Phi = sp.stats.norm.cdf
 binc = sp.special.betainc
 
+#Lognormal cdf
 def ln_cdf(x, m, s):
    return 0.5*(1 + erf( ((np.log(x)-m))/(s*np.sqrt(2))) )    
-   
+
+#Gamma cdf   
 def gam_cdf(x, m, s):
     a = (m**2)/(s**2)
     b = m/s**2
     return sp.stats.gamma.cdf(x,a,scale=s.mean()/2)
-    
+
+#Weibull cdf    
 def wei_cdf(x, a, b):
     return 1 - np.exp(-(x/b)**a) 
 
+#Negative binomial cdf
 def nb_cdf(x, m, a):
     p = a/(m+a)
     n = a
     return sp.stats.nbinom.cdf(x, n, p)
-    
+
+# In case a Wald distribution is also tried
 # def wal_cdf(x, m, l):
 #     p1 = Phi(np.sqrt(l/x)*((x/m) - 1))
 #     p2 = np.exp(2*l/m)*Phi(-np.sqrt(l/x)*((x/m) + 1))
 #     return p1 + p2
-    
+
+# period of x = 30 days for computing cdfs
 x = np.array([np.arange(30, step=0.1) for i in range(pos_l_a.shape[0])]).T
 
 l_cdf = ln_cdf(x, pos_l_a, pos_l_b)
@@ -190,17 +206,13 @@ n_cdf_5, n_cdf_95 = az.hdi(n_cdf.T, hdi_prob=0.95).T
 
 inc_day = ((tSymptomOnset-tEndExposure)+(tSymptomOnset-tStartExposure))/2
 
-l = np.round(((30-18)/2), 0)
-r = 30-18 - l
+# num_bins = x.shape[0]
+# counts, bin_edges = np.histogram(np.sort(inc_day), bins=num_bins, density=True)
+# e_cdf = np.cumsum(counts/counts.sum())
 
-#inc_day = list(np.repeat(min(inc_day), l)) + list(inc_day) + list(np.repeat(max(inc_day), r))
-
-num_bins = x.shape[0]
-counts, bin_edges = np.histogram(np.sort(inc_day), bins=num_bins, density=True)
-e_cdf = np.cumsum(counts/counts.sum())
-
+# save plots
 fig, ax = plt.subplots(2,2, figsize=(10,10))
-sns.ecdfplot(inc_day, ax=ax[0,0], color='k', linestyle=":", label="Empirical CDF")
+sns.ecdfplot(inc_day, ax=ax[0,0], color='k', linestyle=":", label="Empirical CDF") #use seaborn empirical cdf function
 ax[0,0].plot(x.mean(axis=1), l_cdf_m, color="slateblue", label="LogNormal CDF")
 ax[0,0].fill_between(x.mean(axis=1), l_cdf_5, l_cdf_95, color="slateblue", alpha=0.2, label="95% HDI")
 ax[0,0].set_ylabel("Proporton")
@@ -242,6 +254,8 @@ plt.savefig("./plots/NE_cdfs_plots.png", dpi=600)
 plt.show()
 plt.close()
 
+
+## produce and save summaries of models outputs
 l_summ = az.summary(idata_l, hdi_prob=0.95)
 g_summ = az.summary(idata_g, hdi_prob=0.95)
 w_summ = az.summary(idata_w, hdi_prob=0.95)
@@ -257,7 +271,7 @@ posteriors = pd.concat([l_summ, g_summ, w_summ, n_summ])
 posteriors.to_csv("./summaries/NE_posteriors.csv")
 
 
-### save summary plots
+##################### save summary plots #########################
 fig, ax = plt.subplots(2,2, figsize=(12,12))
 az.plot_energy(idata_l, ax=ax[0,0])
 ax[0,0].set_title("LogNormal")
@@ -271,7 +285,6 @@ plt.suptitle("Netherlands")
 plt.tight_layout()
 plt.savefig("./summary_plots/NE_energy_plots.png", dpi=300)
 plt.close()
-
 
 fig, ax = plt.subplots(2,2, figsize=(12,12))
 az.plot_trace(idata_l, kind="rank_vlines")
