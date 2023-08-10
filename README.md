@@ -18,7 +18,7 @@
 
 
 <h1> Results </h1>
-<p> Models sampled with NUTS HMC with 1000 tuning steps and 1000 samples over 4 chains. Models sampled well with all R_hats = 1, and ESS > 1000, excepting the LogNormal model for Italy, which did not converge after prior update with R_hats > 1.01 and ESS around 400 (see summaries directory), and the Weibull model which required increased target-acceptance (0.99) to converge.</p>
+<p> Models sampled with NUTS HMC with 1000 tuning steps and 1000 samples over 4 chains. Models sampled well with all R_hats = 1, and ESS > 1000,the LogNormal and Weibull models required increased target-acceptance (0.99) to converge.</p>
 
 <p>The estimated mean incubation periods from the Netherlands data reproduce previous results closely, as Table 1 shows. CDF plots and PSIS-LOO model comparisons also indicate similarity of results, though the show the additional variation expected from a fully parametrised model.</p>
 
@@ -48,7 +48,7 @@
 	<img src="plots/IT_base_model_comp_loo.png" width="800" height="500" />
 </p>
 
-<p> After this, we used the posterior mean and standard deviation from each Gamma prior for parameters <i>a</i> and <i>b</i> from each model and used it to parameterise the respective model's Gamma priors for the Italy models (i.e. Beta priors were not replaced). Results showed slightly improved accuracy and precision. As expected from small data models, updating priors changes the predictive capacity of models, though it is relevant to emphasise that models show high ELPD overlap. Note that in this case, the PSIS-LOO comparison indicates that Gamma and NegativeBinomial models have very similar weights of 48% and 52% respectively (see summaries).  </p>
+<p> After this, we used the posterior mean and standard deviation from each Gamma prior for parameters <i>a</i> and <i>b</i> from each model and used it to parameterise the respective model's Gamma priors for the Italy models (i.e. Beta priors were not replaced). Results showed slightly improved accuracy and precision. As expected from small data models, updating priors changes the predictive capacity of models, though it is relevant to emphasise that models show high ELPD overlap. Note that in this case, the PSIS-LOO comparison indicates that Gamma and NegativeBinomial models have very similar weights of 44% and 56% respectively (see summaries).  </p>
 
 <p align="center">
 	<img src="plots/IT_table3.png" width="800" height="200" />
