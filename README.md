@@ -7,14 +7,14 @@
 
 <p> We implement the three models used in previous analyses: Lognormal, Gamma and Weibull models, and we add a NegativeBinomial model. All models use the same priors for parameters, with the exception of the sampling distribution (likelihood): </p>
 <i>
-<p align="center"> u ~ Beta(1, 1) </p>
-<p align="center"> a ~ Gamma(1, 1) </p>
-<p align="center"> b ~ Gamma(1, 1) </p>
-<p align="center"> e = u(E - S) </p>
-<p align="center"> y ~ LogNormal(&mu;=a + e, &sigma;=b) </p>
+<p align="center"> r ~ Beta(1, 1) </p>
+<p align="center"> m ~ Gamma(1, 1) </p>
+<p align="center"> s ~ Gamma(1, 1) </p>
+<p align="center"> e = r(E - S) </p>
+<p align="center"> y ~ LogNormal(&mu;=m + e, &sigma;=s) </p>
 </i>
 
-<p> Where, E is a vector containing the end of the exposure period, S is a vector containing the beginning of exposure period, <i>u</i> is the exposure period rate, and the observed data for <i>y</i> corresponds to the onset of symptoms vector O - S. The model above is repeated three more times but replacing <i>y</i> with <i>y</i> ~ Gamma(&mu;=a+e, &sigma;=b), parametrised via mean &mu; and standard deviation &sigma;;  <i>y</i> ~ Weibull(&alpha;=a+e, &beta;=b), and <i>y</i> ~ NegativeBinomial(&mu;=a+e, &alpha;=b) with mean &mu; and shape &sigma;. </p>
+<p> Where, E is a vector containing the end of the exposure period, S is a vector containing the beginning of exposure period, <i>r</i> is the exposure period rate, and the observed data for <i>y</i> corresponds to the onset of symptoms vector O - S. The model above is repeated three more times but replacing <i>y</i> with <i>y</i> ~ Gamma(&mu;=m+e, &sigma;=s), parametrised via mean &mu; and standard deviation &sigma;;  <i>y</i> ~ Weibull(&alpha;=m+e, &beta;=s), and <i>y</i> ~ NegativeBinomial(&mu;=m+e, &alpha;=s) with mean &mu; and shape &sigma;. </p>
 
 <h1> Prior Predictive Checks </h1>
 <p> The defined generic and lowly informative priors may be problematic for some models, as they may not provide good coverage for the observed data ranges or maybe they will cover unrealistic values. Prior predictives for the Netherlands data indicate that LogNormal and Weibull distributions provide very extreme values and Gamma and NegativeBinomial distributions provide more reasonable coverage, but with shifted locations (towards 0). It is probable that posterior distributions will adapt to more realistic values, as prior distributions themselves show very reasonable values within the expected day-range (i.e. up to around 10 days).</p>
@@ -34,7 +34,10 @@
 	<img src="prior_predictive/IT_priors_LogNormal.png" width="300" height="250" />
 	<img src="prior_predictive/IT_priors_Gamma.png" width="300" height="250" />
 </p>
-
+<p align="center">
+	<img src="prior_predictive/IT_priors_Weibull.png" width="300" height="250" />
+	<img src="prior_predictive/IT_priors_NegativeBinomial.png" width="300" height="250" />
+</p>
 
 <h1> Sampling </h1>
 <p> Models sampled with NUTS HMC with 1000 tuning steps and 1000 samples over 4 chains. Models sampled well with all R_hats = 1, and ESS > 1000, and BFMIs > 0.9. The LogNormal and Weibull Italy models using updated priors required increased target-acceptance (0.99) to converge. Rankplots below confirm good convergence from the Netherlands models, models for Italy show similar outputs (see summary_plots directory). </p>
@@ -72,7 +75,7 @@
 	<img src="plots/IT_base_cdfs_plots.png" width="800" height="700" />
 </p>
 
-<p> After this, we used the posterior mean and standard deviation from each Gamma prior for parameters <i>a</i> and <i>b</i> from each Netherlands model and used it to parameterise the respective Italy models Gamma priors (Beta priors were not replaced). (See summaries directory for posteriors.csv files containing posterior summaries and convergence statistics). Results showed slightly improved accuracy and precision.   </p>
+<p> After this, we used the posterior mean and standard deviation from each Gamma prior for parameters <i>m</i> and <i>s</i> from each Netherlands model and used it to parameterise the respective Italy models Gamma priors (Beta priors were not replaced). (See summaries directory for posteriors.csv files containing posterior summaries and convergence statistics). Results showed slightly improved accuracy and precision.   </p>
 
 <p align="center">
 	<img src="plots/IT_table3.png" width="800" height="200" />
