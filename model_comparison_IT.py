@@ -20,7 +20,7 @@ np.random.seed(27)
 
 df = pd.read_csv("./data/Italy_Mpox.csv")
 
-priors = pd.read_csv("./summaries/NE_posteriors.csv")
+priors = pd.read_csv("./posteriors/NE_posteriors.csv")
 priors = priors.rename(columns={"Unnamed: 0":"p"})
 ps_l = priors[priors.model=="LogNormal"]
 ps_l.reset_index(inplace=True,drop=True)
@@ -38,38 +38,47 @@ tSymptomOnset = df['onset'].values.astype("int")
 
 obs = tSymptomOnset - tStartExposure
 
+#Lognormal model
 with pm.Model() as mod_l:
-    r = pm.Beta("r", 1, 1)
-    e = r * (tEndExposure - tStartExposure)
-    m = pm.Gamma("m", mu=ps_l['mean'][1], sigma=ps_l['sd'][1])
-    s = pm.Gamma("s", mu=ps_l['mean'][2], sigma=ps_l['sd'][2])
-    y = pm.LogNormal("y", mu=m+e, sigma=s, observed=obs)
-    ppc_l = pm.sample_prior_predictive(1000) #prior predictives
-
-with pm.Model() as mod_g:
-    r = pm.Beta("r", 1, 1)
-    e = r * (tEndExposure - tStartExposure)
-    m = pm.Gamma("m", mu=ps_g['mean'][1], sigma=ps_g['sd'][1])
-    s = pm.Gamma("s", mu=ps_g['mean'][2], sigma=ps_g['sd'][2])
-    y = pm.Gamma("y", mu=m+e, sigma=s, observed=obs)
-    ppc_g = pm.sample_prior_predictive(1000) #prior predictives
-
-with pm.Model() as mod_w:
-    r = pm.Beta("r", 1, 1)
-    e = r * (tEndExposure - tStartExposure)
-    m = pm.Gamma("m", mu=ps_w['mean'][1], sigma=ps_w['sd'][1])
-    s = pm.Gamma("s", mu=ps_w['mean'][2], sigma=ps_w['sd'][2])
-    y = pm.Weibull("y", alpha=m+e, beta=s, observed=obs)
-    ppc_w = pm.sample_prior_predictive(1000) #prior predictives
+    r = pm.Beta("r", mu=ps_l['mean'][0], sigma=ps_l['sd'][0]) #exposure period increase rate (i.e. ranges between 0 and 1)
+    e = pm.Deterministic("e", r * (tEndExposure - tStartExposure)) #exposure period effect
+    a = pm.Gamma("a", mu=ps_l['mean'][1], sigma=ps_l['sd'][1]) 
+    m = pm.Deterministic("m", a+e) #location paramter 
+    s = pm.Gamma("s", mu=ps_l['mean'][2], sigma=ps_l['sd'][2]) #standard deviation parameter
+    y = pm.LogNormal("y", mu=m, sigma=s, observed=obs) #likelihood
+    ppc_l = pm.sample_prior_predictive(1000, random_seed=27) #prior predictives
     
-with pm.Model() as mod_n:
-    r = pm.Beta("r", 1, 1)
-    e = r * (tEndExposure - tStartExposure)
-    m = pm.Gamma("m", mu=ps_n['mean'][1], sigma=ps_n['sd'][1])
-    s = pm.Gamma("s", mu=ps_n['mean'][2], sigma=ps_n['sd'][2])
-    y = pm.NegativeBinomial("y", mu=m+e, alpha=s, observed=obs)
-    ppc_n = pm.sample_prior_predictive(1000) #prior predictives
+#Gamma model
+with pm.Model() as mod_g:
+    r = pm.Beta("r", mu=ps_g['mean'][0], sigma=ps_g['sd'][0]) #exposure period increase rate (i.e. ranges between 0 and 1)
+    e = pm.Deterministic("e", r * (tEndExposure - tStartExposure)) #exposure period effect
+    a = pm.Gamma("a", mu=ps_g['mean'][1], sigma=ps_g['sd'][1]) 
+    m = pm.Deterministic("m", a+e) #mean paramter 
+    s = pm.Gamma("s", mu=ps_g['mean'][2], sigma=ps_g['sd'][2]) #standard deviation parameter
+    y = pm.Gamma("y", mu=m, sigma=s, observed=obs)
+    ppc_g = pm.sample_prior_predictive(1000, random_seed=27) #prior predictives
 
+#Weibull model
+with pm.Model() as mod_w:
+    r = pm.Beta("r", mu=ps_w['mean'][0], sigma=ps_w['sd'][0]) #exposure period increase rate (i.e. ranges between 0 and 1)
+    e = pm.Deterministic("e", r * (tEndExposure - tStartExposure)) #exposure period effect
+    a = pm.Gamma("a", mu=ps_w['mean'][1], sigma=ps_w['sd'][1]) 
+    m = pm.Deterministic("m", a+e) #shape paramter 
+    s = pm.Gamma("s", mu=ps_w['mean'][2], sigma=ps_w['sd'][2]) #scale parameter
+    y = pm.Weibull("y", alpha=m, beta=s, observed=obs)
+    ppc_w = pm.sample_prior_predictive(1000, random_seed=27) #prior predictives
+
+#Negative binomial model
+with pm.Model() as mod_n:
+    r = pm.Beta("r", mu=ps_n['mean'][0], sigma=ps_n['sd'][0]) #exposure period increase rate (i.e. ranges between 0 and 1)
+    e = pm.Deterministic("e", r * (tEndExposure - tStartExposure)) #exposure period effect
+    a = pm.Gamma("a", mu=ps_n['mean'][1], sigma=ps_n['sd'][1]) 
+    m = pm.Deterministic("m", a+e) #location paramter 
+    s = pm.Gamma("s", mu=ps_n['mean'][2], sigma=ps_n['sd'][2]) #shape parameter
+    y = pm.NegativeBinomial("y", mu=m, alpha=s, observed=obs)
+    ppc_n = pm.sample_prior_predictive(1000, random_seed=27) #prior predictives
+    
+    
 #plot priors
 colors = ["#44AA99", "k", "#AA4499"]
 ppcs = [ppc_l, ppc_g, ppc_w, ppc_n]
@@ -78,7 +87,7 @@ samps = np.random.randint(1000, size=100)
 for p in range(len(ppcs)):
     y = az.extract(ppcs[p].prior_predictive)['y'].values
     r = az.extract(ppcs[p].prior)['r'].values
-    m = az.extract(ppcs[p].prior)['m'].values
+    m = az.extract(ppcs[p].prior)['m'].values.mean(axis=0)
     s = az.extract(ppcs[p].prior)['s'].values
     fig, ax, = plt.subplots(2,2, figsize=(10,10))
     ax[0,0].plot(np.arange(len(obs)), obs, color=colors[1], label="Observed")
@@ -127,9 +136,10 @@ with mod_w:
 
 with mod_n:
     idata_n = pm.sample(1000, idata_kwargs={"log_likelihood": True}, random_seed=27) #NUTS sampler
-    
-###compare loo
-mods = {"LN":idata_l, "Gamma":idata_g, "Weibull":idata_w,  "NB":idata_n}
+
+
+###compare models with PSIS-LOO
+mods = {"LN":idata_l, "Gamma":idata_g, "Weibull":idata_w, "NB":idata_n}
 loo = az.compare(mods, ic='loo')
 
 az.plot_compare(loo, insample_dev=True, plot_kwargs={'color_insample_dev':'crimson', 'color_dse':'steelblue'})
@@ -138,14 +148,13 @@ plt.title("LOO Model Comparison (Italy)", size=12)
 plt.grid(alpha=0.3)
 plt.legend(prop={'size': 12})
 plt.tight_layout()
-plt.savefig('./plots/IT_model_comp_loo.png', dpi=600)
+plt.savefig('./model_comparison/IT_model_comp_loo.png', dpi=600)
 plt.show()
 plt.close()
 loo_df = pd.DataFrame(loo)
-loo_df.to_csv("./summaries/IT_model_comp_loo.csv")
+loo_df.to_csv("./model_comparison/IT_model_comp_loo.csv")
 
-
-###compare Waic
+###compare models with WAIC
 mods = {"LN":idata_l, "Gamma":idata_g, "Weibull":idata_w, "NB":idata_n}
 waic = az.compare(mods, ic='waic')
 
@@ -155,28 +164,32 @@ plt.title("Waic Model Comparison (Italy)", size=12)
 plt.grid(alpha=0.3)
 plt.legend(prop={'size': 12})
 plt.tight_layout()
-plt.savefig('./plots/IT_model_comp_waic.png', dpi=600)
+plt.savefig('./model_comparison/IT_model_comp_waic.png', dpi=600)
 plt.show()
 plt.close()
 loo_df = pd.DataFrame(loo)
-loo_df.to_csv("./summaries/IT_model_comp_waic.csv")
+loo_df.to_csv("./model_comparison/IT_model_comp_waic.csv")
 
 
-pos_l_a = az.extract(idata_l.posterior)['m'].values
+##### Take models' estimated mean incubation period ####
+# for Gamma and NegativeBinomial distributions this should be
+# the same as their location/central tendecy parameters a.
+
+pos_l_a = az.extract(idata_l.posterior)['m'].values.mean(axis=0)
 pos_l_b = az.extract(idata_l.posterior)['s'].values
 means_l = np.exp(pos_l_a + (pos_l_b**2)/2)
 
-pos_g_a = az.extract(idata_g.posterior)['m'].values
+pos_g_a = az.extract(idata_g.posterior)['m'].values.mean(axis=0)
 pos_g_b = az.extract(idata_g.posterior)['s'].values
 ag = (pos_g_a**2)/(pos_g_b**2)
 bg = pos_g_a/(pos_g_b**2)
 means_g = ag / bg
 
-pos_w_a = az.extract(idata_w.posterior)['m'].values
+pos_w_a = az.extract(idata_w.posterior)['m'].values.mean(axis=0)
 pos_w_b = az.extract(idata_w.posterior)['s'].values
 means_w = pos_w_b*gamma(1+(1/pos_w_a))
 
-pos_n_a = az.extract(idata_n.posterior)['m'].values
+pos_n_a = az.extract(idata_n.posterior)['m'].values.mean(axis=0)
 pos_n_b = az.extract(idata_n.posterior)['s'].values
 means_n = pos_n_a
 
@@ -187,53 +200,61 @@ mod_hls = [az.hdi(means_l.T, hdi_prob=0.95)[0], az.hdi(means_g.T, hdi_prob=0.95)
            az.hdi(means_w.T, hdi_prob=0.95)[0], az.hdi(means_n.T, hdi_prob=0.95)[0]]
 mod_hus = [az.hdi(means_l.T, hdi_prob=0.95)[1], az.hdi(means_g.T, hdi_prob=0.95)[1],
            az.hdi(means_w.T, hdi_prob=0.95)[1], az.hdi(means_n.T, hdi_prob=0.95)[1]]
-ne_means = pd.DataFrame({"Model":mod_names, "Mean":mod_means, "SD":mod_stds,
+IT_means = pd.DataFrame({"Model":mod_names, "Mean":mod_means, "SD":mod_stds,
                          "HDI 2.5%":mod_hls, "HDI 97.5%":mod_hus})
-ne_means.to_csv("./summaries/IT_means.csv")
+IT_means.to_csv("./posteriors/IT_means.csv")
 
-ne_means = ne_means.round(2)
+IT_means = IT_means.round(2)
 
+## Save estimates as table
 fig, ax = plt.subplots(1, figsize=(5,5))
 ax.axis('off')
 ax.axis('tight')
-table = ax.table(cellText=ne_means.values, colLabels=ne_means.columns, loc='center')
+table = ax.table(cellText=IT_means.values, colLabels=IT_means.columns, loc='center')
 table.set_fontsize(25)
 table.scale(4.5, 4.5) 
-plt.suptitle("Table 3. Estimated Mean Incubation Period (Italy)", size=30, y=1)
+plt.suptitle("Table 1. Estimated Mean Incubation Period (Italy)", size=30, y=1)
 plt.tight_layout()
-plt.savefig("./plots/IT_table3.png", dpi=600, bbox_inches="tight")
+plt.savefig("./posteriors/IT_table1.png", dpi=600, bbox_inches="tight")
 plt.show()
 
 
-
-### plot
+### Produce and save cumulative density function (CDF) plots
+# functions for cdf calculation
 erf = sp.special.erf
 ginc = sp.special.gammainc
 Gamma = sp.special.gamma
 Phi = sp.stats.norm.cdf
 binc = sp.special.betainc
 
+#Lognormal cdf
 def ln_cdf(x, m, s):
    return 0.5*(1 + erf( ((np.log(x)-m))/(s*np.sqrt(2))) )    
-   
+
+#Gamma cdf   
 def gam_cdf(x, m, s):
     a = (m**2)/(s**2)
     b = m/s**2
-    return sp.stats.gamma.cdf(x,a,scale=s.mean()/2)
-    
+    return sp.stats.gamma.cdf(x,a,scale=1/b)
+
+#Weibull cdf    
 def wei_cdf(x, a, b):
     return 1 - np.exp(-(x/b)**a) 
 
+#Negative binomial cdf
 def nb_cdf(x, m, a):
     p = a/(m+a)
     n = a
     return sp.stats.nbinom.cdf(x, n, p)
-    
+
+# In case a Wald distribution is also tried
 # def wal_cdf(x, m, l):
 #     p1 = Phi(np.sqrt(l/x)*((x/m) - 1))
 #     p2 = np.exp(2*l/m)*Phi(-np.sqrt(l/x)*((x/m) + 1))
 #     return p1 + p2
-    
+
+
+# period of x = 30 days for computing cdfs
 x = np.array([np.arange(30, step=0.1) for i in range(pos_l_a.shape[0])]).T
 
 l_cdf = ln_cdf(x, pos_l_a, pos_l_b)
@@ -254,13 +275,8 @@ n_cdf_5, n_cdf_95 = az.hdi(n_cdf.T, hdi_prob=0.95).T
 
 inc_day = ((tSymptomOnset-tEndExposure)+(tSymptomOnset-tStartExposure))/2
 
-l = np.round(((30-18)/2), 0)
-r = 30-18 - l
 
-num_bins = x.shape[0]
-counts, bin_edges = np.histogram(np.sort(inc_day), bins=num_bins, density=True)
-e_cdf = np.cumsum(counts/counts.sum())
-
+# save plots
 fig, ax = plt.subplots(2,2, figsize=(10,10))
 sns.ecdfplot(inc_day, ax=ax[0,0], color='k',  label="Empirical CDF")
 ax[0,0].plot(x.mean(axis=1), l_cdf_m, color="#0072B2", linestyle="--", label="Posterior mean")
@@ -300,11 +316,12 @@ ax[1,1].grid(alpha=0.2)
 ax[1,1].set_title("D. Negative Binomial")
 plt.suptitle("Models CDFs (Italy)")
 plt.tight_layout()
-plt.savefig("./plots/IT_cdfs_plots.png", dpi=600)
+plt.savefig("./posteriors/IT_cdfs_plots.png", dpi=600)
 plt.show()
 plt.close()
 
 
+## produce and save summaries of models outputs
 l_summ = az.summary(idata_l, hdi_prob=0.95)
 g_summ = az.summary(idata_g, hdi_prob=0.95)
 w_summ = az.summary(idata_w, hdi_prob=0.95)
@@ -313,14 +330,14 @@ n_summ = az.summary(idata_n, hdi_prob=0.95)
 l_summ['model'] = np.repeat("LogNormal", len(l_summ))
 g_summ['model'] = np.repeat("Gamma", len(g_summ)) 
 w_summ['model'] = np.repeat("Weibull", len(w_summ))
-n_summ['model'] = np.repeat("NegativeBinomial", len(w_summ))
+n_summ['model'] = np.repeat("NegativeBinomial", len(n_summ))
 
 posteriors = pd.concat([l_summ, g_summ, w_summ, n_summ])
 
-posteriors.to_csv("./summaries/IT_posteriors.csv")
+posteriors.to_csv("./posteriors/IT_posteriors.csv")
 
 
-### save summary plots
+##################### save summary plots #########################
 fig, ax = plt.subplots(2,2, figsize=(12,12))
 az.plot_energy(idata_l, ax=ax[0,0])
 ax[0,0].set_title("LogNormal")
@@ -332,31 +349,29 @@ az.plot_energy(idata_n, ax=ax[1,1])
 ax[1,1].set_title("NegativeBinomial")
 plt.suptitle("Italy")
 plt.tight_layout()
-plt.savefig("./summary_plots/IT_energy_plots.png", dpi=300)
+plt.savefig("./convergence_checks/IT_energy_plots.png", dpi=300)
 plt.close()
-
 
 fig, ax = plt.subplots(2,2, figsize=(12,12))
 az.plot_trace(idata_l, kind="rank_vlines")
 plt.suptitle("LogNormal (Italy)")
 plt.tight_layout()
-plt.savefig("./summary_plots/IT_lognormal_rankplot.png", dpi=300)
+plt.savefig("./convergence_checks/IT_lognormal_rankplot.png", dpi=300)
 
 az.plot_trace(idata_g, kind="rank_vlines")
 plt.suptitle("Gamma (Italy)")
 plt.tight_layout()
-plt.savefig("./summary_plots/IT_gamma_rankplot.png", dpi=300)
+plt.savefig("./convergence_checks/IT_gamma_rankplot.png", dpi=300)
 
 az.plot_trace(idata_w, kind="rank_vlines")
 plt.suptitle("Weibull (Italy)")
 plt.tight_layout()
-plt.savefig("./summary_plots/IT_weibull_rankplot.png", dpi=300)
+plt.savefig("./convergence_checks/IT_weibull_rankplot.png", dpi=300)
 
-az.plot_trace(idata_n, kind="rank_vlines")
+az.plot_trace(idata_l, kind="rank_vlines")
 plt.suptitle("NegativeBinomial (Italy)")
 plt.tight_layout()
-plt.savefig("./summary_plots/IT_negativebinom_rankplot.png", dpi=300)
-
+plt.savefig("./convergence_checks/IT_negativebinom_rankplot.png", dpi=300)
 
 
 ########### Posterior predictive checks #################
