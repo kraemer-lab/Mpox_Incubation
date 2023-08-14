@@ -213,9 +213,9 @@ ax.axis('tight')
 table = ax.table(cellText=IT_means.values, colLabels=IT_means.columns, loc='center')
 table.set_fontsize(25)
 table.scale(4.5, 4.5) 
-plt.suptitle("Table 1. Estimated Mean Incubation Period (Italy)", size=30, y=1)
+plt.suptitle("Table 3. Estimated Mean Incubation Period (Italy)", size=30, y=1)
 plt.tight_layout()
-plt.savefig("./posteriors/IT_table1.png", dpi=600, bbox_inches="tight")
+plt.savefig("./posteriors/IT_table3.png", dpi=600, bbox_inches="tight")
 plt.show()
 
 
