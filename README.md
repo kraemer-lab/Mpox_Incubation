@@ -21,35 +21,35 @@
 <p> The defined generic and lowly informative priors may be problematic for some models, as they may not provide good coverage for the observed data ranges or maybe they will cover unrealistic values. Prior predictives for the Netherlands data indicate that LogNormal and Weibull distributions provide very extreme values and Gamma and NegativeBinomial distributions provide more reasonable coverage, but with shifted locations (towards 0). It is probable that posterior distributions will adapt to more realistic values, as prior distributions themselves show very reasonable values within the expected day-range (i.e. up to around 10 days).</p>
 
 <p align="center">
-	<img src="prior_predictive/NE_priors_LogNormal.png" width="300" height="250" />
-	<img src="prior_predictive/NE_priors_Gamma.png" width="300" height="250" />
+	<img src="prior_predictive/NE_priors_LogNormal.png" width="330" height="300" />
+	<img src="prior_predictive/NE_priors_Gamma.png" width="330" height="300" />
 </p>
 <p align="center">
-	<img src="prior_predictive/NE_priors_Weibull.png" width="300" height="250" />
-	<img src="prior_predictive/NE_priors_NegativeBinomial.png" width="300" height="250" />
+	<img src="prior_predictive/NE_priors_Weibull.png" width="330" height="300" />
+	<img src="prior_predictive/NE_priors_NegativeBinomial.png" width="330" height="300" />
 </p>
 
 <p> Prior predictives for the Italy data show a very similar pattern when no prior update is performed (see prior_predictive directory). However, when posterior information from the Netherlands models is included, prior predictive distributions improve substantially. </p>
 
 <p align="center">
-	<img src="prior_predictive/IT_priors_LogNormal.png" width="300" height="250" />
-	<img src="prior_predictive/IT_priors_Gamma.png" width="300" height="250" />
+	<img src="prior_predictive/IT_priors_LogNormal.png" width="330" height="300" />
+	<img src="prior_predictive/IT_priors_Gamma.png" width="330" height="300" />
 </p>
 <p align="center">
-	<img src="prior_predictive/IT_priors_Weibull.png" width="300" height="250" />
-	<img src="prior_predictive/IT_priors_NegativeBinomial.png" width="300" height="250" />
+	<img src="prior_predictive/IT_priors_Weibull.png" width="330" height="300" />
+	<img src="prior_predictive/IT_priors_NegativeBinomial.png" width="330" height="300" />
 </p>
 
 <h1> Sampling </h1>
 <p> Models sampled with NUTS HMC with 1000 tuning steps and 1000 samples over 4 chains. Models sampled well with all R_hats = 1, and ESS > 1000, and BFMIs > 0.9. Rankplots below confirm good convergence from the Netherlands models, models for Italy show similar outputs (see convergence_checks directory). </p>
 
 <p align="center">
-	<img src="convergence_checks/NE_lognormal_rankplot.png" width="300" height="200" />
-	<img src="convergence_checks/NE_gamma_rankplot.png" width="300" height="200" />
+	<img src="convergence_checks/NE_lognormal_rankplot.png" width="330" height="300" />
+	<img src="convergence_checks/NE_gamma_rankplot.png" width="330" height="300" />
 </p>
 <p align="center">
-	<img src="convergence_checks/NE_weibull_rankplot.png" width="300" height="200" />
-	<img src="convergence_checks/NE_negativebinom_rankplot.png" width="300" height="200" />
+	<img src="convergence_checks/NE_weibull_rankplot.png" width="330" height="300" />
+	<img src="convergence_checks/NE_negativebinom_rankplot.png" width="330" height="300" />
 </p>
 
 

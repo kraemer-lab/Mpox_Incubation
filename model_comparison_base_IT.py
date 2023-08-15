@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 from scipy.special import gamma
 
 #####plotting parameters
-plt.rcParams.update({'font.size': 14})
-plt.rcParams.update({'figure.titlesize': 16})
+plt.rcParams.update({'font.size': 16})
+plt.rcParams.update({'figure.titlesize': 20})
 plt.rcParams['font.family'] = "DeJavu Serif"
 plt.rcParams['font.serif'] = "Cambria Math"
 
@@ -100,7 +100,7 @@ for p in range(len(ppcs)):
     ax[1,0].hist(m, bins=100, color="orangered", alpha=0.5)
     ax[1,0].set_xlabel("Days")
     ax[1,0].set_ylabel("Density")
-    ax[1,0].set_title("C. Prior m")
+    ax[1,0].set_title("C. Prior m (mean)")
     ax[1,0].set_axisbelow(True)
     ax[1,0].grid(0.1)
     ax[1,1].hist(s, bins=100, color="slateblue", alpha=0.5)
@@ -329,6 +329,7 @@ posteriors.to_csv("./posteriors/IT_base_posteriors.csv")
 
 
 ##################### save summary plots #########################
+#plot bfmis
 fig, ax = plt.subplots(2,2, figsize=(12,12))
 az.plot_energy(idata_l, ax=ax[0,0])
 ax[0,0].set_title("LogNormal")
@@ -338,29 +339,57 @@ az.plot_energy(idata_w, ax=ax[1,0])
 ax[1,0].set_title("Weibull")
 az.plot_energy(idata_n, ax=ax[1,1])
 ax[1,1].set_title("NegativeBinomial")
-plt.suptitle("Italy")
+plt.suptitle("Italy: no prior update")
 plt.tight_layout()
 plt.savefig("./convergence_checks/IT_base_energy_plots.png", dpi=300)
 plt.close()
 
-fig, ax = plt.subplots(2,2, figsize=(12,12))
-az.plot_trace(idata_l, kind="rank_vlines")
-plt.suptitle("LogNormal (Italy)")
+# plot traces
+fig, ax = plt.subplots(5,2, figsize=(12,12))
+az.plot_trace(idata_l, kind="rank_vlines", axes=ax)
+for a in ax[:,0]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+for a in ax[:,1]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+plt.suptitle("LogNormal (Italy: no prior update)", size=22)
 plt.tight_layout()
 plt.savefig("./convergence_checks/IT_base_lognormal_rankplot.png", dpi=300)
 
-az.plot_trace(idata_g, kind="rank_vlines")
-plt.suptitle("Gamma (Italy)")
+fig, ax = plt.subplots(5,2, figsize=(12,12))
+az.plot_trace(idata_g, kind="rank_vlines", axes=ax)
+for a in ax[:,0]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+for a in ax[:,1]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+plt.suptitle("Gamma (Italy: no prior update)", size=22)
 plt.tight_layout()
 plt.savefig("./convergence_checks/IT_base_gamma_rankplot.png", dpi=300)
 
-az.plot_trace(idata_w, kind="rank_vlines")
-plt.suptitle("Weibull (Italy)")
+fig, ax = plt.subplots(5,2, figsize=(12,12))
+az.plot_trace(idata_w, kind="rank_vlines", axes=ax)
+for a in ax[:,0]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+for a in ax[:,1]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+plt.suptitle("Weibull (Italy: no prior update)", size=22)
 plt.tight_layout()
 plt.savefig("./convergence_checks/IT_base_weibull_rankplot.png", dpi=300)
 
-az.plot_trace(idata_l, kind="rank_vlines")
-plt.suptitle("NegativeBinomial (Italy: no prior update)")
+fig, ax = plt.subplots(5,2, figsize=(12,12))
+az.plot_trace(idata_l, kind="rank_vlines", axes=ax)
+for a in ax[:,0]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+for a in ax[:,1]:
+    t = a.get_title()
+    a.set_title(t, fontsize=22)
+plt.suptitle("NegativeBinomial (Italy: no prior update)", size=22)
 plt.tight_layout()
 plt.savefig("./convergence_checks/IT_base_negativebinom_rankplot.png", dpi=300)
 
