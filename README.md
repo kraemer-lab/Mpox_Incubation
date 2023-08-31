@@ -40,6 +40,17 @@
 	<img src="prior_predictive/IT_priors_NegativeBinomial.png" width="330" height="300" />
 </p>
 
+<p> Combining data from Netherlands and Italy can serve to assess how much prior update helps to refine inference. Note that default priors are still less accurate respect to updated priors above. </p>
+
+<p align="center">
+	<img src="prior_predictive/Both_priors_LogNormal.png" width="330" height="300" />
+	<img src="prior_predictive/Both_priors_Gamma.png" width="330" height="300" />
+</p>
+<p align="center">
+	<img src="prior_predictive/Both_priors_Weibull.png" width="330" height="300" />
+	<img src="prior_predictive/Both_priors_NegativeBinomial.png" width="330" height="300" />
+</p>
+
 <h1> Sampling </h1>
 <p> Models sampled with NUTS HMC with 1000 tuning steps and 1000 samples over 4 chains. Models sampled well with all R_hats = 1, and ESS > 1000, and BFMIs > 0.9. Rankplots below confirm good convergence from the Netherlands models, models for Italy show similar outputs (see convergence_checks directory). </p>
 
@@ -76,7 +87,7 @@
 	<img src="posteriors/IT_base_cdfs_plots.png" width="800" height="700" />
 </p>
 
-<p> After this, we used the posterior mean and standard from <i>r</i>, <i>a</i> and <i>s</i> parameters from the Netherlands model and used it to parameterise the respective priors in the Italy model. (See posteriors directory for posteriors.csv files containing posterior summaries and convergence statistics). Results showed slightly improved precision.   </p>
+<p> After this, we used the posterior mean and standard from <i>r</i>, <i>a</i> and <i>s</i> parameters from the Netherlands model and used it to parameterise the respective priors in the Italy model. (See posteriors directory for posteriors.csv files containing posterior summaries and convergence statistics). Results showed slightly improved precision.  </p>
 
 <p align="center">
 	<img src="posteriors/IT_table3.png" width="800" height="200" />
@@ -85,6 +96,17 @@
 <p align="center">
 	<img src="posteriors/IT_cdfs_plots.png" width="800" height="700" />
 </p>
+
+<p> Models applied to combined data (Netherlands + Italy) output results that are close to the model with updated priors. Note how the estimates from Italy data with updated priors (above) match the empirical CDFs of combined data closely.   </p>
+
+<p align="center">
+	<img src="posteriors/Both_table4.png" width="800" height="200" />
+</p>
+
+<p align="center">
+	<img src="posteriors/Both_cdfs_plots.png" width="800" height="700" />
+</p>
+
 
 <h1> Posterior Predictive Checks </h1>
 <p> Posterior predictive distributions indicate good performance of models, with a good measurement of uncertainty around the predicted mean and observed data, in particular from  Gamma and NegativeBinomial models.</p>
@@ -99,11 +121,14 @@
 <p align="center">
 	<img src="posterior_predictive/IT_predictions.png" width="500" height="500" />
 </p>
+<p align="center">
+	<img src="posterior_predictive/Both_predictions.png" width="500" height="500" />
+</p>
 
 
 <h1> Model Comparison </h1>
 
-<p> As expected from small data models, updating priors changes the predictive capacity of models, though it is relevant to emphasise that models show high overlap in their expected log-predictive densities (ELPDs). Italy models indicate that Gamma and NegativeBinomial distributions outperform the other two distributions, in particular when using more informative priors. Note that in this case, the PSIS-LOO comparison indicates that Gamma and NegativeBinomial models have very similar weights of 47% and 53% respectively (see model_comaprison directory). </p>
+<p> As expected from small data models, updating priors changes the predictive capacity of models, though it is relevant to emphasise that models show high overlap in their expected log-predictive densities (ELPDs). Italy models indicate that Gamma and NegativeBinomial distributions outperform the other two distributions, in particular when using more informative priors. Note that in this case, the PSIS-LOO comparison indicates that Gamma and NegativeBinomial models have very similar weights of 47% and 53% respectively (see model_comaprison directory), while model with combined data indicates weights of 60% for Gamma, 28% for NegativeBinomial, and 12% for LogNormal. In both cases, Gamma and NegativeBinomial show very close ELPDs, and Gamma has slightly more in-sample predictive capacity.</p>
 
 <p align="center">
 	<img src="model_comparison/NE_model_comp_loo.png" width="800" height="500" />
@@ -115,6 +140,10 @@
 
 <p align="center">
 	<img src="model_comparison/IT_model_comp_loo.png" width="800" height="500" />
+</p>
+
+<p align="center">
+	<img src="model_comparison/Both_model_comp_loo.png" width="800" height="500" />
 </p>
 
 <h1> Conclusion </h1>
