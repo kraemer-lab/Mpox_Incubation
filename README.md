@@ -9,9 +9,9 @@
 <i>
 <p align="center"> r ~ Beta(1, 1) </p>
 <p align="center"> a ~ Gamma(1, 1) </p>
+<p align="center"> e = r(E - S) </p>
 <p align="center"> m = a + e </p>
 <p align="center"> s ~ Gamma(1, 1) </p>
-<p align="center"> e = r(E - S) </p>
 <p align="center"> y ~ LogNormal(&mu;=m, &sigma;=s) </p>
 </i>
 

@@ -1,4 +1,4 @@
-Case ID,Start date of exposure,End date of exposure,Symptom onset
+ID,start,end,onset
 1,0,0,6
 2,11,11,20
 3,11,11,19

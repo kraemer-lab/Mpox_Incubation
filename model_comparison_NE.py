@@ -20,9 +20,9 @@ np.random.seed(27)
 df = pd.read_csv("./data/Netherlands_Mpox.csv")
 
 N = len(df)
-tStartExposure = df['Start date of exposure'].values.astype("int")
-tEndExposure = df['End date of exposure'].values.astype("int")
-tSymptomOnset = df['Symptom onset'].values.astype("int")
+tStartExposure = df['start'].values.astype("int")
+tEndExposure = df['end'].values.astype("int")
+tSymptomOnset = df['onset'].values.astype("int")
 
 obs = tSymptomOnset - tStartExposure #time latency from beginning of exposure to symptoms onset
 
